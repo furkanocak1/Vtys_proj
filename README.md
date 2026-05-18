@@ -27,3 +27,5 @@ flutter run
 ```
 
 Mock ↔ API: `mobil/lib/config/app_config.dart` (`useMock`, `apiBaseUrl`).
+
+Ekranlar: araç listesi → tıkla → araç detay.

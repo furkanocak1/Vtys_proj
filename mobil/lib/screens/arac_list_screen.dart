@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/arac.dart';
 import '../repositories/repository_provider.dart';
+import 'arac_detail_screen.dart';
 
 class AracListScreen extends StatefulWidget {
   const AracListScreen({super.key});
@@ -105,6 +106,13 @@ class _AracListScreenState extends State<AracListScreen> {
             title: Text('${a.markaAdi} ${a.model}'),
             subtitle: Text('${a.yil} · ${a.fiyat.toStringAsFixed(0)} ₺'),
             trailing: _DurumBadge(durum: a.durum),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AracDetailScreen(arac: a),
+                ),
+              );
+            },
           );
         },
       ),
