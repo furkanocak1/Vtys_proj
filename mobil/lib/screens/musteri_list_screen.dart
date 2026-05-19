@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/musteri.dart';
 import '../repositories/repository_provider.dart';
+import 'musteri_ekle_screen.dart';
 
 class MusteriListScreen extends StatefulWidget {
   const MusteriListScreen({super.key});
@@ -47,6 +48,15 @@ class _MusteriListScreenState extends State<MusteriListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Müşteriler')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final eklendi = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(builder: (_) => const MusteriEkleScreen()),
+          );
+          if (eklendi == true) _load();
+        },
+        child: const Icon(Icons.add),
+      ),
       body: _buildBody(),
     );
   }

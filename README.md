@@ -28,4 +28,4 @@ flutter run
 
 Mock ↔ API: `mobil/lib/config/app_config.dart` (`useMock`, `apiBaseUrl`).
 
-Ekranlar: Araçlar / Müşteriler / Test sürüşü / Satış kaydı, araç detay.
+Ekranlar: Araçlar / Müşteriler (+ ekle) / Test sürüşü / Satış kaydı, araç detay.
