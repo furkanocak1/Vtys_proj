@@ -8,4 +8,7 @@ class AppConfig {
   /// Emülatör + bilgisayarda XAMPP: http://10.0.2.2/otogaleri/api
   /// Gerçek telefon + aynı Wi‑Fi: http://192.168.x.x/otogaleri/api
   static const String apiBaseUrl = 'http://10.0.2.2/otogaleri/api';
+
+  /// Mock modda giriş yapan personel (API hazır olunca değişir).
+  static const int mockPersonelId = 1;
 }

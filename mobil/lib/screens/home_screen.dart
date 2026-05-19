@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'arac_list_screen.dart';
 import 'musteri_list_screen.dart';
+import 'satis_kayit_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _screens = [
     AracListScreen(),
     MusteriListScreen(),
+    SatisKayitScreen(),
   ];
 
   @override
@@ -28,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.directions_car), label: 'Araçlar'),
           NavigationDestination(icon: Icon(Icons.people), label: 'Müşteriler'),
+          NavigationDestination(icon: Icon(Icons.receipt_long), label: 'Satış'),
         ],
       ),
     );
