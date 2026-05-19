@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'config/app_config.dart';
-import 'screens/arac_list_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const OtogaleriApp());
@@ -19,7 +19,7 @@ class OtogaleriApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const AracListScreen(),
+      home: const HomeScreen(),
       builder: (context, child) {
         if (!AppConfig.useMock) return child!;
         return Banner(
