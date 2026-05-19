@@ -7,7 +7,9 @@ import '../models/test_surusu_kayit.dart';
 import '../repositories/repository_provider.dart';
 
 class TestSurusuScreen extends StatefulWidget {
-  const TestSurusuScreen({super.key});
+  const TestSurusuScreen({super.key, this.baslangicArac});
+
+  final Arac? baslangicArac;
 
   @override
   State<TestSurusuScreen> createState() => _TestSurusuScreenState();
@@ -48,9 +50,19 @@ class _TestSurusuScreenState extends State<TestSurusuScreen> {
     try {
       final musteriler = await RepositoryProvider.musteriRepository.getMusteriler();
       final araclar = await RepositoryProvider.aracRepository.getAraclar(durum: 'Satışta');
+      Arac? secili;
+      if (widget.baslangicArac != null) {
+        for (final a in araclar) {
+          if (a.aracId == widget.baslangicArac!.aracId) {
+            secili = a;
+            break;
+          }
+        }
+      }
       setState(() {
         _musteriler = musteriler;
         _araclar = araclar;
+        _seciliArac = secili;
         _loading = false;
       });
     } catch (e) {

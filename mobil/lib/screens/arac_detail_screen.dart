@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/arac.dart';
+import 'satis_kayit_screen.dart';
+import 'test_surusu_screen.dart';
 
 class AracDetailScreen extends StatelessWidget {
   const AracDetailScreen({super.key, required this.arac});
@@ -22,6 +24,32 @@ class AracDetailScreen extends StatelessWidget {
           _row('Model', arac.model),
           _row('Şube ID', '${arac.subeId}'),
           _row('Araç ID', '${arac.aracId}'),
+          if (arac.durum == 'Satışta') ...[
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => TestSurusuScreen(baslangicArac: arac),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.speed),
+              label: const Text('Test sürüşü kaydet'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => SatisKayitScreen(baslangicArac: arac),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.receipt_long),
+              label: const Text('Satış kaydı'),
+            ),
+          ],
         ],
       ),
     );

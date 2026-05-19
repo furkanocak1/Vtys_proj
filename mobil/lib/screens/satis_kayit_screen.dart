@@ -8,7 +8,10 @@ import '../repositories/repository_provider.dart';
 
 /// Personel satış kaydı formu (ödeme / sepet yok).
 class SatisKayitScreen extends StatefulWidget {
-  const SatisKayitScreen({super.key});
+  const SatisKayitScreen({super.key, this.baslangicArac});
+
+  /// Araç detayından gelince önceden seçili araç.
+  final Arac? baslangicArac;
 
   @override
   State<SatisKayitScreen> createState() => _SatisKayitScreenState();
@@ -49,10 +52,23 @@ class _SatisKayitScreenState extends State<SatisKayitScreen> {
     try {
       final musteriler = await RepositoryProvider.musteriRepository.getMusteriler();
       final araclar = await RepositoryProvider.aracRepository.getAraclar(durum: 'Satışta');
+      Arac? secili;
+      if (widget.baslangicArac != null) {
+        for (final a in araclar) {
+          if (a.aracId == widget.baslangicArac!.aracId) {
+            secili = a;
+            break;
+          }
+        }
+      }
       setState(() {
         _musteriler = musteriler;
         _araclar = araclar;
+        _seciliArac = secili;
         _loading = false;
+        if (secili != null) {
+          _fiyatController.text = secili.fiyat.toStringAsFixed(0);
+        }
       });
     } catch (e) {
       setState(() {
