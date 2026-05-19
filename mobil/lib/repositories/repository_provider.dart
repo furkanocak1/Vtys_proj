@@ -8,6 +8,9 @@ import 'musteri_repository.dart';
 import 'satis_api_repository.dart';
 import 'satis_mock_repository.dart';
 import 'satis_repository.dart';
+import 'test_surusu_api_repository.dart';
+import 'test_surusu_mock_repository.dart';
+import 'test_surusu_repository.dart';
 
 class RepositoryProvider {
   static AracRepository get aracRepository {
@@ -23,5 +26,10 @@ class RepositoryProvider {
   static SatisRepository get satisRepository {
     if (AppConfig.useMock) return SatisMockRepository();
     return SatisApiRepository();
+  }
+
+  static TestSurusuRepository get testSurusuRepository {
+    if (AppConfig.useMock) return TestSurusuMockRepository();
+    return TestSurusuApiRepository();
   }
 }
