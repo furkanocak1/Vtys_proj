@@ -1,14 +1,12 @@
-/// Mock ↔ gerçek API geçişi buradan yapılır.
+/// Mock ↔ API geçişi buradan yapılır.
 class AppConfig {
-  /// true  → sahte veri (AracMockRepository)
-  /// false → PHP API (AracApiRepository)
-  static const bool useMock = true;
+  /// true  → sahte veri | false → web_db PHP API
+  static const bool useMock = false;
 
-  /// API hazır olunca web arkadaşının verdiği adres.
-  /// Emülatör + bilgisayarda XAMPP: http://10.0.2.2/otogaleri/api
-  /// Gerçek telefon + aynı Wi‑Fi: http://192.168.x.x/otogaleri/api
-  static const String apiBaseUrl = 'http://10.0.2.2/otogaleri/api';
+  /// XAMPP: web_db/backend/api.php
+  /// Android emülatör: http://10.0.2.2/... | Edge/Windows: http://localhost/...
+  static const String apiBaseUrl =
+      'http://localhost/Vtys_proj/web_db/backend/api.php';
 
-  /// Mock modda giriş yapan personel (API hazır olunca değişir).
   static const int mockPersonelId = 1;
 }

@@ -71,8 +71,21 @@ if ($method === 'GET') {
 
         echo json_encode($istatistikler);
     }
+    elseif ($tip === 'araclar') {
+        $sql = "SELECT a.AracID, a.SubeID, a.MarkaID, m.MarkaAdi, a.Model, a.SasiNo, a.Yil, a.Fiyat, a.Durum
+                FROM Araclar a
+                JOIN Markalar m ON a.MarkaID = m.MarkaID";
+        if (isset($_GET['durum']) && $_GET['durum'] !== '') {
+            $stmt = $db->prepare($sql . " WHERE a.Durum = ? ORDER BY a.AracID DESC");
+            $stmt->execute([$_GET['durum']]);
+            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+        } else {
+            $sorgu = $db->query($sql . " ORDER BY a.AracID DESC");
+            echo json_encode($sorgu->fetchAll(PDO::FETCH_ASSOC));
+        }
+    }
     else {
-        $sorgu = $db->query("SELECT * FROM vw_aktifaraclar"); 
+        $sorgu = $db->query("SELECT * FROM vw_AktifAraclar"); 
         $araclar = $sorgu->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($araclar);
     }

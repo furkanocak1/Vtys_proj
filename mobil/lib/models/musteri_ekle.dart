@@ -17,4 +17,12 @@ class MusteriEkle {
         'telefon': telefon,
         'musteriTipi': musteriTipi,
       };
+
+  /// web_db/backend/api.php
+  Map<String, dynamic> toApiJson() => {
+        'AdSoyad': adSoyad,
+        'TCKimlik': tcKimlik,
+        'Telefon': telefon,
+        'MusteriTipi': musteriTipi,
+      };
 }

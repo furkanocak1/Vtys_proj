@@ -26,6 +26,6 @@ flutter pub get
 flutter run
 ```
 
-Mock ↔ API: `mobil/lib/config/app_config.dart` (`useMock`, `apiBaseUrl`).
+API: `mobil/lib/config/app_config.dart` → `useMock = false`, `apiBaseUrl` = `web_db/backend/api.php` (XAMPP açık olmalı). Emülatörde `localhost` yerine `10.0.2.2` kullan.
 
 Ekranlar: Araçlar / Müşteriler (+ ekle) / Test sürüşü / Satış kaydı, araç detay.

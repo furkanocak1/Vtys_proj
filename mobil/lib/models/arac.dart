@@ -1,3 +1,5 @@
+import '../utils/api_json.dart';
+
 class Arac {
   const Arac({
     required this.aracId,
@@ -23,15 +25,19 @@ class Arac {
 
   factory Arac.fromJson(Map<String, dynamic> json) {
     return Arac(
-      aracId: json['aracId'] as int,
-      subeId: json['subeId'] as int,
-      markaId: json['markaId'] as int,
-      markaAdi: json['markaAdi'] as String,
-      model: json['model'] as String,
-      sasiNo: json['sasiNo'] as String,
-      yil: json['yil'] as int,
-      fiyat: (json['fiyat'] as num).toDouble(),
-      durum: json['durum'] as String,
+      aracId: ApiJson.intVal(json, 'aracId', 'AracID'),
+      subeId: json.containsKey('SubeID') || json.containsKey('subeId')
+          ? ApiJson.intVal(json, 'subeId', 'SubeID')
+          : 0,
+      markaId: json.containsKey('MarkaID') || json.containsKey('markaId')
+          ? ApiJson.intVal(json, 'markaId', 'MarkaID')
+          : 0,
+      markaAdi: ApiJson.str(json, 'markaAdi', 'MarkaAdi'),
+      model: ApiJson.str(json, 'model', 'Model'),
+      sasiNo: ApiJson.str(json, 'sasiNo', 'SasiNo'),
+      yil: ApiJson.intVal(json, 'yil', 'Yil'),
+      fiyat: ApiJson.doubleVal(json, 'fiyat', 'Fiyat'),
+      durum: ApiJson.str(json, 'durum', 'Durum'),
     );
   }
 }
