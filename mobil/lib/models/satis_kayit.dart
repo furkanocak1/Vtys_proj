@@ -18,4 +18,10 @@ class SatisKayit {
         'personelId': personelId,
         'satisFiyati': satisFiyati,
       };
+
+  Map<String, dynamic> toApiJson() => {
+        'AracID': aracId,
+        'MusteriID': musteriId,
+        'SatisFiyati': satisFiyati,
+      };
 }

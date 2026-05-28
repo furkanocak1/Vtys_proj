@@ -1,3 +1,5 @@
+import '../utils/api_json.dart';
+
 class Musteri {
   const Musteri({
     required this.musteriId,
@@ -15,11 +17,11 @@ class Musteri {
 
   factory Musteri.fromJson(Map<String, dynamic> json) {
     return Musteri(
-      musteriId: json['musteriId'] as int,
-      adSoyad: json['adSoyad'] as String,
-      tcKimlik: json['tcKimlik'] as String,
-      telefon: json['telefon'] as String,
-      musteriTipi: json['musteriTipi'] as String,
+      musteriId: ApiJson.intVal(json, 'musteriId', 'MusteriID'),
+      adSoyad: ApiJson.str(json, 'adSoyad', 'AdSoyad'),
+      tcKimlik: ApiJson.str(json, 'tcKimlik', 'TCKimlik'),
+      telefon: ApiJson.str(json, 'telefon', 'Telefon'),
+      musteriTipi: ApiJson.str(json, 'musteriTipi', 'MusteriTipi'),
     );
   }
 }
