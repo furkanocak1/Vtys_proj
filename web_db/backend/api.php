@@ -11,9 +11,21 @@ $pass = '';
 try {
     $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); 
+    $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    $db->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, false);
 } catch (PDOException $e) {
     die(json_encode(["hata" => "Veritabanı bağlantı hatası: " . $e->getMessage()]));
 }
+
+function castNumeric($d) {
+    if (is_array($d)) {
+        foreach ($d as $k => $v) $d[$k] = castNumeric($v);
+    } elseif (is_string($d) && is_numeric($d) && strpos($d, ".") !== false) {
+        $d = (float)$d;
+    }
+    return $d;
+}
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -24,12 +36,12 @@ if ($method === 'GET') {
     if ($tip === 'markalar') {
         $sorgu = $db->query("SELECT * FROM Markalar ORDER BY MarkaAdi ASC");
         $veriler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($veriler);
+        echo json_encode(castNumeric($veriler));
     } 
     elseif ($tip === 'subeler') {
         $sorgu = $db->query("SELECT * FROM Subeler ORDER BY SubeAdi ASC");
         $veriler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($veriler);
+        echo json_encode(castNumeric($veriler));
     }elseif ($tip === 'testsurusleri') {
         $sorgu = $db->query("
             SELECT t.TestID, t.Tarih, t.Notlar, 
@@ -44,16 +56,16 @@ if ($method === 'GET') {
             ORDER BY t.Tarih DESC
         ");
         $veriler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($veriler);
+        echo json_encode(castNumeric($veriler));
     }
      elseif ($tip === 'musteriler') {
         $sorgu = $db->query("SELECT * FROM Musteriler ORDER BY MusteriID DESC");
         $veriler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($veriler);
+        echo json_encode(castNumeric($veriler));
     }elseif ($tip === 'satislar') {
         $sorgu = $db->query("SELECT * FROM vw_SatislarDetay ORDER BY Tarih DESC");
         $veriler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($veriler);
+        echo json_encode(castNumeric($veriler));
     }elseif ($tip === 'istatistik') {
         $istatistikler = [];
         
@@ -69,7 +81,7 @@ if ($method === 'GET') {
             GROUP BY m.MarkaAdi
         ")->fetchAll(PDO::FETCH_ASSOC);
 
-        echo json_encode($istatistikler);
+        echo json_encode(castNumeric($istatistikler));
     }
     elseif ($tip === 'araclar') {
         $sql = "SELECT a.AracID, a.SubeID, a.MarkaID, m.MarkaAdi, a.Model, a.SasiNo, a.Yil, a.Fiyat, a.Durum
@@ -78,16 +90,16 @@ if ($method === 'GET') {
         if (isset($_GET['durum']) && $_GET['durum'] !== '') {
             $stmt = $db->prepare($sql . " WHERE a.Durum = ? ORDER BY a.AracID DESC");
             $stmt->execute([$_GET['durum']]);
-            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            echo json_encode(castNumeric($stmt->fetchAll(PDO::FETCH_ASSOC)));
         } else {
             $sorgu = $db->query($sql . " ORDER BY a.AracID DESC");
-            echo json_encode($sorgu->fetchAll(PDO::FETCH_ASSOC));
+            echo json_encode(castNumeric($sorgu->fetchAll(PDO::FETCH_ASSOC)));
         }
     }
     else {
         $sorgu = $db->query("SELECT * FROM vw_AktifAraclar"); 
         $araclar = $sorgu->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($araclar);
+        echo json_encode(castNumeric($araclar));
     }
 }
 
