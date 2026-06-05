@@ -1,0 +1,387 @@
+-- ==========================================================
+-- OtogaleriDB — Database Schema
+-- TBL331 Veritabanı Yönetim Sistemleri / 2025-2026 Bahar
+-- ==========================================================
+
+DROP DATABASE IF EXISTS OtogaleriDB;
+CREATE DATABASE OtogaleriDB CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci;
+USE OtogaleriDB;
+
+-- ---------- 1. Markalar ----------
+CREATE TABLE Markalar (
+    MarkaID INT AUTO_INCREMENT PRIMARY KEY,
+    MarkaAdi VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- ---------- 2. Subeler ----------
+CREATE TABLE Subeler (
+    SubeID INT AUTO_INCREMENT PRIMARY KEY,
+    SubeAdi VARCHAR(100) NOT NULL,
+    Sehir VARCHAR(50) NOT NULL
+);
+
+-- ---------- 3. Musteriler ----------
+CREATE TABLE Musteriler (
+    MusteriID INT AUTO_INCREMENT PRIMARY KEY,
+    AdSoyad VARCHAR(100) NOT NULL,
+    TCKimlik VARCHAR(11) NOT NULL UNIQUE,
+    Telefon VARCHAR(20) NOT NULL,
+    MusteriTipi VARCHAR(15) NOT NULL DEFAULT 'Bireysel',
+    CONSTRAINT chk_MusteriTipi CHECK (MusteriTipi IN ('Bireysel', 'Kurumsal'))
+);
+
+-- ---------- 4. Personeller ----------
+CREATE TABLE Personeller (
+    PersonelID INT AUTO_INCREMENT PRIMARY KEY,
+    SubeID INT NOT NULL,
+    AdSoyad VARCHAR(100) NOT NULL,
+    Eposta VARCHAR(100) NOT NULL UNIQUE,
+    IseGirisTarihi DATE NOT NULL DEFAULT (CURRENT_DATE),
+    CONSTRAINT fk_Personel_Sube FOREIGN KEY (SubeID) REFERENCES Subeler(SubeID) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- ---------- 5. Araclar ----------
+CREATE TABLE Araclar (
+    AracID INT AUTO_INCREMENT PRIMARY KEY,
+    SubeID INT NOT NULL,
+    MarkaID INT NOT NULL,
+    Model VARCHAR(50) NOT NULL,
+    SasiNo VARCHAR(17) NOT NULL UNIQUE,
+    Yil INT NOT NULL,
+    Fiyat DECIMAL(12, 2) NOT NULL,
+    Durum VARCHAR(15) NOT NULL DEFAULT 'Satışta',
+    CONSTRAINT fk_Arac_Sube FOREIGN KEY (SubeID) REFERENCES Subeler(SubeID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_Arac_Marka FOREIGN KEY (MarkaID) REFERENCES Markalar(MarkaID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT chk_Arac_Yil CHECK (Yil >= 2000),
+    CONSTRAINT chk_Arac_Fiyat CHECK (Fiyat > 0),
+    CONSTRAINT chk_Arac_Durum CHECK (Durum IN ('Satışta', 'Satıldı', 'Rezerve'))
+);
+
+-- ---------- 6. TestSurusleri ----------
+CREATE TABLE TestSurusleri (
+    TestID INT AUTO_INCREMENT PRIMARY KEY,
+    AracID INT NOT NULL,
+    MusteriID INT NOT NULL,
+    PersonelID INT NOT NULL,
+    Tarih DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Notlar TEXT,
+    CONSTRAINT fk_Test_Arac FOREIGN KEY (AracID) REFERENCES Araclar(AracID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_Test_Musteri FOREIGN KEY (MusteriID) REFERENCES Musteriler(MusteriID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_Test_Personel FOREIGN KEY (PersonelID) REFERENCES Personeller(PersonelID) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- ---------- 7. Satislar ----------
+CREATE TABLE Satislar (
+    SatisID INT AUTO_INCREMENT PRIMARY KEY,
+    AracID INT NOT NULL UNIQUE,
+    PersonelID INT NOT NULL,
+    MusteriID INT NOT NULL,
+    SatisFiyati DECIMAL(12, 2) NOT NULL,
+    SatisTarihi DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_Satis_Arac FOREIGN KEY (AracID) REFERENCES Araclar(AracID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_Satis_Personel FOREIGN KEY (PersonelID) REFERENCES Personeller(PersonelID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_Satis_Musteri FOREIGN KEY (MusteriID) REFERENCES Musteriler(MusteriID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT chk_Satis_Fiyat CHECK (SatisFiyati > 0)
+);
+USE OtogaleriDB;
+
+SELECT 'Markalar' AS T, COUNT(*) AS N FROM Markalar
+UNION ALL SELECT 'Subeler', COUNT(*) FROM Subeler
+UNION ALL SELECT 'Musteriler', COUNT(*) FROM Musteriler
+UNION ALL SELECT 'Personeller', COUNT(*) FROM Personeller
+UNION ALL SELECT 'Araclar', COUNT(*) FROM Araclar;USE OtogaleriDB;
+
+-- ==========================================================
+-- INDEX 1: Araçları durumuna göre ara
+-- Neden: Uygulama sürekli olarak "sadece satılık" gösteriyor
+-- Sorgu: SELECT * FROM Araclar WHERE Durum = 'Satışta'
+-- ==========================================================
+CREATE INDEX idx_araclar_durum 
+ON Araclar(Durum);
+
+-- ==========================================================
+-- INDEX 2: Marka ve yıla göre arama için bileşik indeks
+-- Neden: Kullanıcılar kataloğu şu şekilde filtreliyor: "2022'den itibaren BMW"
+-- Sorgu: SELECT * FROM Araclar WHERE MarkaID = 1 AND Yil >= 2022
+-- ==========================================================
+CREATE INDEX idx_araclar_marka_yil 
+ON Araclar(MarkaID, Yil);
+
+-- ==========================================================
+-- INDEX 3: Tarihe Göre Satışlar
+-- Neden: Aylık/Üç Aylık/Yıllık raporlar
+-- Sorgu: SELECT * FROM Satislar WHERE SatisTarihi BETWEEN '...' AND '...'
+-- ==========================================================
+CREATE INDEX idx_satislar_tarih 
+ON Satislar(SatisTarihi);
+
+-- ==========================================================
+-- INDEX 4: Müşteri Türüne Göre
+-- Neden: Bireysel ve Kurumsal için ayrı ayrı pazarlama
+-- Sorgu: SELECT * FROM Musteriler WHERE MusteriTipi = 'Kurumsal'
+-- ==========================================================
+CREATE INDEX idx_musteriler_tipi 
+ON Musteriler(MusteriTipi);
+
+-- ==========================================================
+-- INDEX 5: Tarihe Göre Test Sürüşleri
+-- Neden: Belirli bir döneme ait test sürüşlerini görüntüleyin (raporlar, yönetici KPI'ları)
+-- Sorgu: SELECT * FROM TestSurusleri WHERE Tarih >= '...'
+-- ==========================================================
+CREATE INDEX idx_testsurusleri_tarih 
+ON TestSurusleri(Tarih);
+
+SHOW INDEXES FROM Araclar;
+
+SHOW INDEXES FROM Satislar;
+SHOW INDEXES FROM Musteriler;
+SHOW INDEXES FROM TestSurusleri;
+
+EXPLAIN SELECT * FROM Araclar WHERE Durum = 'Satışta';
+
+EXPLAIN SELECT * FROM Araclar WHERE Model = 'X5';USE OtogaleriDB;
+
+-- ==========================================================
+-- VIEW 1: Satılık araçların aktif kataloğu
+-- Kullanım alanı: web sitesinin ana sayfası, şehre göre filtreleme
+-- Gizlenenler: 3 tabloda birleştirme (Araclar, Markalar, Subeler)
+-- ==========================================================
+CREATE OR REPLACE VIEW vw_AktifAraclar AS
+SELECT 
+    a.AracID,
+    m.MarkaAdi,
+    a.Model,
+    a.Yil,
+    a.Fiyat,
+    a.SasiNo,
+    a.Durum,
+    s.SubeAdi,
+    s.Sehir
+FROM Araclar a
+JOIN Markalar m ON a.MarkaID = m.MarkaID
+JOIN Subeler s ON a.SubeID = s.SubeID
+WHERE a.Durum = 'Satışta'
+ORDER BY a.Fiyat;
+
+-- ==========================================================
+-- VIEW 2: Detaylı Satış Raporu
+-- Kullanım Alanları: Yönetim Paneli, Aylık Raporlar
+-- Gizlenenler: 6 tabloda birleştirme + indirim hesaplaması
+-- ==========================================================
+CREATE OR REPLACE VIEW vw_SatislarDetay AS
+SELECT 
+    s.SatisID,
+    DATE(s.SatisTarihi) AS Tarih,
+    CONCAT(m.MarkaAdi, ' ', a.Model, ' (', a.Yil, ')') AS Arac,
+    a.SasiNo,
+    mu.AdSoyad AS MusteriAdi,
+    mu.MusteriTipi,
+    p.AdSoyad AS PersonelAdi,
+    sb.SubeAdi,
+    sb.Sehir,
+    a.Fiyat AS KatalogFiyati,
+    s.SatisFiyati,
+    (a.Fiyat - s.SatisFiyati) AS Indirim,
+    ROUND((a.Fiyat - s.SatisFiyati) / a.Fiyat * 100, 2) AS IndirimYuzdesi
+FROM Satislar s
+JOIN Araclar a ON s.AracID = a.AracID
+JOIN Markalar m ON a.MarkaID = m.MarkaID
+JOIN Musteriler mu ON s.MusteriID = mu.MusteriID
+JOIN Personeller p ON s.PersonelID = p.PersonelID
+JOIN Subeler sb ON p.SubeID = sb.SubeID;
+
+-- ==========================================================
+-- VIEW 3: Çalışan Performansı (KPI)
+-- Kullanım alanları: prim hesaplamaları, çalışan değerlendirmeleri, puanlamalar
+-- Özellik: toplama (GROUP BY) + LEFT JOIN
+-- ==========================================================
+CREATE OR REPLACE VIEW vw_PersonelPerformans AS
+SELECT 
+    p.PersonelID,
+    p.AdSoyad,
+    sb.SubeAdi,
+    sb.Sehir,
+    COUNT(s.SatisID) AS ToplamSatis,
+    COALESCE(SUM(s.SatisFiyati), 0) AS ToplamCiro,
+    COALESCE(ROUND(AVG(s.SatisFiyati), 2), 0) AS OrtalamaSatis,
+    MAX(s.SatisTarihi) AS SonSatisTarihi
+FROM Personeller p
+JOIN Subeler sb ON p.SubeID = sb.SubeID
+LEFT JOIN Satislar s ON p.PersonelID = s.PersonelID
+GROUP BY p.PersonelID, p.AdSoyad, sb.SubeAdi, sb.Sehir
+ORDER BY ToplamCiro DESC;
+
+-- ==========================================================
+-- VIEW 4: Şube bazında depo özeti
+-- Kullanım amacı: operasyonel izleme, stok dengeleme
+-- Özellik: koşullu toplama (CASE WHEN)
+-- ==========================================================
+CREATE OR REPLACE VIEW vw_SubeStok AS
+SELECT 
+    sb.SubeID,
+    sb.SubeAdi,
+    sb.Sehir,
+    COUNT(a.AracID) AS ToplamArac,
+    SUM(CASE WHEN a.Durum = 'Satışta' THEN 1 ELSE 0 END) AS Satista,
+    SUM(CASE WHEN a.Durum = 'Satıldı' THEN 1 ELSE 0 END) AS Satildi,
+    SUM(CASE WHEN a.Durum = 'Rezerve' THEN 1 ELSE 0 END) AS Rezerve,
+    COALESCE(SUM(CASE WHEN a.Durum = 'Satışta' THEN a.Fiyat ELSE 0 END), 0) AS SatistakiToplamDeger
+FROM Subeler sb
+LEFT JOIN Araclar a ON sb.SubeID = a.SubeID
+GROUP BY sb.SubeID, sb.SubeAdi, sb.Sehir
+ORDER BY ToplamArac DESC;USE OtogaleriDB;
+
+
+CREATE TABLE IF NOT EXISTS Araclar_FiyatGecmisi (
+    LogID INT AUTO_INCREMENT PRIMARY KEY,
+    AracID INT NOT NULL,
+    EskiFiyat DECIMAL(12, 2) NOT NULL,
+    YeniFiyat DECIMAL(12, 2) NOT NULL,
+    DegisimTarihi DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_FiyatGecmisi_Arac 
+        FOREIGN KEY (AracID) REFERENCES Araclar(AracID) 
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DELIMITER $$
+CREATE TRIGGER trg_Satislar_AfterInsert
+AFTER INSERT ON Satislar
+FOR EACH ROW
+BEGIN
+    UPDATE Araclar
+    SET Durum = 'Satıldı'
+    WHERE AracID = NEW.AracID;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_TestSurusleri_BeforeInsert
+BEFORE INSERT ON TestSurusleri
+FOR EACH ROW
+BEGIN
+    DECLARE v_durum VARCHAR(15);
+    
+    SELECT Durum INTO v_durum
+    FROM Araclar
+    WHERE AracID = NEW.AracID;
+    
+    IF v_durum = 'Satıldı' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Satılmış araç için test sürüşü yapılamaz!';
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_Araclar_FiyatLog
+AFTER UPDATE ON Araclar
+FOR EACH ROW
+BEGIN
+    IF OLD.Fiyat <> NEW.Fiyat THEN
+        INSERT INTO Araclar_FiyatGecmisi (AracID, EskiFiyat, YeniFiyat)
+        VALUES (NEW.AracID, OLD.Fiyat, NEW.Fiyat);
+    END IF;
+END$$
+
+DELIMITER ;
+USE OtogaleriDB;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_AracSat(
+    IN p_AracID INT,
+    IN p_PersonelID INT,
+    IN p_MusteriID INT,
+    IN p_SatisFiyati DECIMAL(12,2)
+)
+BEGIN
+    DECLARE v_durum VARCHAR(15);
+
+    -- Arabanin durum
+    SELECT Durum INTO v_durum FROM Araclar WHERE AracID = p_AracID;
+
+    -- test
+    IF v_durum IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Araç bulunamadı!';
+    ELSEIF v_durum = 'Satıldı' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Bu araç zaten satılmış!';
+    ELSE
+        -- satiliyoruz
+        INSERT INTO Satislar (AracID, PersonelID, MusteriID, SatisFiyati)
+        VALUES (p_AracID, p_PersonelID, p_MusteriID, p_SatisFiyati);
+    END IF;
+END$$
+
+DELIMITER ;
+DELIMITER $$
+
+CREATE PROCEDURE sp_AylikSatisRaporu(
+    IN p_Yil INT,
+    IN p_Ay INT
+)
+BEGIN
+    SELECT 
+        DATE(s.SatisTarihi) AS Tarih,
+        CONCAT(m.MarkaAdi, ' ', a.Model) AS Arac,
+        mu.AdSoyad AS Musteri,
+        p.AdSoyad AS Personel,
+        s.SatisFiyati
+    FROM Satislar s
+    JOIN Araclar a    ON s.AracID = a.AracID
+    JOIN Markalar m   ON a.MarkaID = m.MarkaID
+    JOIN Musteriler mu ON s.MusteriID = mu.MusteriID
+    JOIN Personeller p ON s.PersonelID = p.PersonelID
+    WHERE YEAR(s.SatisTarihi) = p_Yil
+      AND MONTH(s.SatisTarihi) = p_Ay
+    ORDER BY s.SatisTarihi;
+END$$
+
+DELIMITER ;
+DELIMITER $$
+
+CREATE PROCEDURE sp_SubeStokOzeti(
+    IN  p_SubeID INT,
+    OUT p_Satista INT,
+    OUT p_Satildi INT,
+    OUT p_ToplamDeger DECIMAL(15,2)
+)
+BEGIN
+    SELECT COUNT(*) INTO p_Satista
+    FROM Araclar WHERE SubeID = p_SubeID AND Durum = 'Satışta';
+
+    SELECT COUNT(*) INTO p_Satildi
+    FROM Araclar WHERE SubeID = p_SubeID AND Durum = 'Satıldı';
+
+    SELECT COALESCE(SUM(Fiyat), 0) INTO p_ToplamDeger
+    FROM Araclar WHERE SubeID = p_SubeID AND Durum = 'Satışta';
+END$$
+
+DELIMITER ;
+DELIMITER $$
+
+CREATE PROCEDURE sp_YeniMusteriKaydet(
+    IN p_AdSoyad VARCHAR(100),
+    IN p_TCKimlik VARCHAR(11),
+    IN p_Telefon VARCHAR(20),
+    IN p_MusteriTipi VARCHAR(15)
+)
+BEGIN
+    DECLARE v_count INT;
+
+    -- kontrol ediyoruz ayni TC Kimlik 'le musteri var mi diye'
+    SELECT COUNT(*) INTO v_count FROM Musteriler WHERE TCKimlik = p_TCKimlik;
+
+    IF v_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Bu TC Kimlik ile zaten kayıtlı müşteri var!';
+    ELSEIF LENGTH(p_TCKimlik) <> 11 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'TC Kimlik 11 haneli olmalıdır!';
+    ELSE
+        INSERT INTO Musteriler (AdSoyad, TCKimlik, Telefon, MusteriTipi)
+        VALUES (p_AdSoyad, p_TCKimlik, p_Telefon, COALESCE(p_MusteriTipi, 'Bireysel'));
+    END IF;
+END$$
+
+DELIMITER ;
