@@ -111,6 +111,7 @@
             if(data.durum === "basarili") {
                 document.getElementById('yeni-arac-form').reset();
                 araclariGetir(); 
+            }
         });
     });
 function araclariGetir() {
