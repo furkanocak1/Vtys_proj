@@ -76,6 +76,7 @@
                                 <strong>Şasi:</strong> ${arac.SasiNo} |
                                 <strong>Şube:</strong> ${arac.SubeAdi} (${arac.Sehir})
                             </p>
+                            <button onclick="aracSil(${arac.AracID})" style="margin-top:10px; background-color:#e74c3c; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Sistemden Sil</button>
                         </div>
                     `;
                 });
@@ -114,29 +115,7 @@
             }
         });
     });
-function araclariGetir() {
-        fetch('../backend/api.php?tip=araclar')
-            .then(res => res.json())
-            .then(data => {
-                const listeDiv = document.getElementById('arac-listesi-kutu');
-                listeDiv.innerHTML = ''; 
 
-                data.forEach(arac => {
-                    listeDiv.innerHTML += `
-                        <div class="arac-karti">
-                            <h4 style="margin:0 0 10px 0;">${arac.MarkaAdi} ${arac.Model} (${arac.Yil})</h4>
-                            <p style="margin:0; font-size:14px;">
-                                <strong>Fiyat:</strong> ${arac.Fiyat} TL | 
-                                <strong>Durum:</strong> ${arac.Durum} | 
-                                <strong>Şasi:</strong> ${arac.SasiNo} |
-                                <strong>Şube:</strong> ${arac.SubeAdi}
-                            </p>
-                            <button onclick="aracSil(${arac.AracID})" style="margin-top:10px; background-color:#e74c3c; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Sistemden Sil</button>
-                        </div>
-                    `;
-                });
-            });
-    }
     function aracSil(id) {
         if(confirm('Bu aracı sistemden kalıcı olarak silmek istediğinize emin misiniz?')) {
             fetch('../backend/api.php?id=' + id, {

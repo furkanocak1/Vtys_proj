@@ -1,6 +1,14 @@
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 session_start();
 // --- VERİTABANI BAĞLANTISI (PDO) ---
 $host = 'localhost';
@@ -84,9 +92,10 @@ if ($method === 'GET') {
         echo json_encode(castNumeric($istatistikler));
     }
     elseif ($tip === 'araclar') {
-        $sql = "SELECT a.AracID, a.SubeID, a.MarkaID, m.MarkaAdi, a.Model, a.SasiNo, a.Yil, a.Fiyat, a.Durum
+        $sql = "SELECT a.AracID, a.SubeID, s.SubeAdi, s.Sehir, a.MarkaID, m.MarkaAdi, a.Model, a.SasiNo, a.Yil, a.Fiyat, a.Durum
                 FROM Araclar a
-                JOIN Markalar m ON a.MarkaID = m.MarkaID";
+                JOIN Markalar m ON a.MarkaID = m.MarkaID
+                LEFT JOIN Subeler s ON a.SubeID = s.SubeID";
         if (isset($_GET['durum']) && $_GET['durum'] !== '') {
             $stmt = $db->prepare($sql . " WHERE a.Durum = ? ORDER BY a.AracID DESC");
             $stmt->execute([$_GET['durum']]);
